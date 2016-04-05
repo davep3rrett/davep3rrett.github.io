@@ -2,9 +2,9 @@
 permalink:           pretty
 
 # Setup
-title:               Poole
-tagline:             The Jekyll Butler
-url:                 http://getpoole.com
+title:               Dave Perrett
+tagline:             a blog about my programming projects
+url:                 http://davep3rrett.info
 paginate:            1
 baseurl:             ""
 
@@ -17,14 +17,8 @@ sass:
 
 # About/contact
 author:
-  name:              Mark Otto
-  url:               https://twitter.com/mdo
-  email:             markdotto@gmail.com
-
-# Custom vars
-version:             2.0.0
-github:
-  repo:              https://github.com/poole/poole
+  name:              Dave Perrett
+  email:             david.m.perrett@gmail.com
 
 # Gems
 gems:
