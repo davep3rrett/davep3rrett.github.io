@@ -24,3 +24,6 @@ author:
 gems:
   - jekyll-paginate
   - jekyll-gist
+
+# Google Analytics
+analytics_id:	UA-76112209-1
