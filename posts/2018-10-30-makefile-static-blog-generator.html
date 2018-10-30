@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <title>Dave Perrett Details His Computing Misadventures </title>
+  <link rel="stylesheet" type="text/css" href="../main.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <meta name="description" content="Dave Perrett Details His Computing Misadventures - A Programming Blog. Dave Perrett is a developer and musician living in Brooklyn, NY.">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html"><h1>Dave Perrett Details His Computing Misadventures</h1></a>
+  </header>
+  <div class="main-content">
+
+
+
+<h2 id="a-makefile-based-static-site-generator">A Makefile-Based Static Site Generator</h2>
+<p>After I wrote <a href="2018-08-16-c-hashtable-vim-preamble.html">the last post</a>, I started feeling dissatisfied with my current static blog setup. Jekyll is a cool project, but it has more features than I need / want. So naturally...I decided to roll my own static blog generator &#x1F643;</p>
+<p>In keeping with my recent Unix greybeard urges, I decided to use <a href="https://www.gnu.org/software/make/">GNU Make</a> as the taskrunner / build system. I&#39;ve been wanting to get more familiar with writing Makefiles, plus I just felt like doing something a little more esoteric than Grunt/Gulp/Webpack/whatever.</p>
+<p>I learned a lot about Make in the process, and there&#39;s a lot I could cover in this post, but I&#39;m not going to bore you by attempting to write a Make tutorial. For me, the big takeaway - the big mind-blower for me - was the declarative style.</p>
+<p><em>~ Declarative, not imperative ~</em></p>
+<p>This means that rather than laying out the build steps one by one in your Makefile, you instead tell Make what you ultimately want to end up with, give it some hints about how to build the intermediate dependencies of the end result, and Make just...does it. Crazy.</p>
+<h3 id="dependencies-other-software-used">Dependencies / other software used</h3>
+<p>I decided I would make use of libraries from <code>npm</code> / the Node ecosystem, since it&#39;s something I&#39;m already familiar &amp; comfortable working with.</p>
+<p>I enjoyed the ability to write my blog posts in Markdown, which Jekyll supported out of the box. So I needed to grab a Markdown compiler. I went with <a href="https://www.npmjs.com/package/marked">marked</a>, which supports Github-flavored Markdown.</p>
+<p>For templates, I chose <code>ejs</code>. I value templating languages that stay out of your way and don&#39;t force too much cute new syntax on you.</p>
+<p>To deal with metadata, I decided to keep Jekyll&#39;s solution and use YAML front matter. I chose <a href="https://github.com/jonschlinkert/gray-matter">gray-matter</a> to deal with this.</p>
+<p>I wanted Make to be doing most of the work, so I needed to write wrapper scripts around the aforementioned <code>npm</code> packages to be able to use them from the shell. I tried to make these helper scripts as &#39;dumb&#39; / Unix-y as possible (only do one thing, write to the stdout, yadda yadda).</p>
+<p>For styling, I used <a href="http://sass-lang.com/">Sass</a> and I used <a href="https://github.com/css/csso">csso</a> as a minifier / optimizer.</p>
+<p>And lastly, I&#39;m proud to report there is absolutely zero client-side Javascript running on this blog!!! &#x1F60E;</p>
+<h3 id="assorted-takeaways-from-writing-my-first-real-makefile">Assorted takeaways from writing my first real Makefile</h3>
+<ul>
+<li><p>This line at the top of your Makefile allows you to invoke CLIs / executables from <code>node_modules</code>:</p>
+<pre><code>PATH := node_modules/.bin:$(PATH)</code></pre></li>
+<li><p><code>%</code>, <code>$&lt;</code>, and <code>$@</code> are really powerful! Read about pattern rules and automatic variables!</p>
+</li>
+<li><p>Each line of a recipe is executed in a separate shell. So <code>cd</code>-ing into some directory on one line won&#39;t help you on the next line (there are workarounds of course).</p>
+</li>
+<li><p>If you&#39;re invoking some executable on your system (<code>node</code> in my case), remember that that executable does not necessarily have the same innate concept of the current working directory that Make does while it&#39;s building your targets and following your recipes! This sounds obvious but it bit me a couple times.</p>
+<h3 id="farewell-final-remarks">Farewell / final remarks</h3>
+<p>This was really fun to work on. There are tons of ways in which it could be better, more generalized, more parameterized, more configurable. But it works for now, and hopefully will live and evolve as I keep blogging. You can check out the code <a href="https://github.com/davep3rrett/makefile-static-blog">here</a>. Thanks - as always - for reading :)</p>
+</li>
+</ul>
+
+
+
+</div>
+<footer>
+  <hr>
+  <p>&copy; 2018 Dave Perrett</p>
+</footer>
+</body>
+</html>
+
+
+

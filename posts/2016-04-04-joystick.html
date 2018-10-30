@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+  <title>Dave Perrett Details His Computing Misadventures </title>
+  <link rel="stylesheet" type="text/css" href="../main.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <meta name="description" content="Dave Perrett Details His Computing Misadventures - A Programming Blog. Dave Perrett is a developer and musician living in Brooklyn, NY.">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html"><h1>Dave Perrett Details His Computing Misadventures</h1></a>
+  </header>
+  <div class="main-content">
+
+
+
+<h2 id="using-a-gaming-joystick-as-a-midi-pitch-bend-wheel">Using a Gaming Joystick as a MIDI Pitch Bend Wheel</h2>
+<p>This past January I traveled to Worcester, MA to perform at The Firehouse&#39;s yearly event &quot;Noise Brunch&quot;. The material I wanted to debut required a good deal of gratuitious soloing and noodling on a keyboard MIDI controller (and when I solo, I tend to lean quite heavily on the pitch bend wheel). I was taking the bus to Worcester and wanted to travel light, but my 25-key Akai MPK Mini, which fit nicely in my backpack, did not have a pitch wheel.</p>
+<p>So I started to think: since MIDI controllers work by simply sending event messages (note on, note off, etc.) to the device they are controlling, there shouldn&#39;t be any reason why I couldn&#39;t send messages to the synth from two separate devices - note on and note off messages from the MPK Mini, and the pitch bend messages from somewhere else. It hit me: what about a gaming joystick? The action of a joystick is similar to that of a pitch wheel - both return to a center resting position when you are not actively bending. Plus, bending the pitch with a joystick would look cool and add a fun performative element.</p>
+<p>I quickly scanned Craigslist and found someone located in Coney Island selling a USB joystick for ten dollars - perfect. I headed to Coney later that night to make the pickup, and then headed home to start hacking.</p>
+<p>I decided to use <a href="http://chuck.cs.princeton.edu/">ChucK</a> as the language for this project, as I&#39;d enjoyed working with it in the past and I knew that it had some built-in classes for dealing with human interactive devices (i.e. joysticks).</p>
+<p><strong>Constructing MIDI Messages</strong></p>
+<p>A little background: MIDI messages are structured as three-byte words. They’re a little bit like system calls in assembly language, in that the first byte - known as the <em>status byte</em> - determines which type of message is being sent (note on, note off, program change, etc.), and the second and third bytes act as the parameters.</p>
+<p>Before actually dealing with the joystick, I decided to write some test code to make sure it would be possible to manually build MIDI messages and send them to a soft-synth.</p>
+<pre><code>// instantiate a MidiOutput object and open a connection on port 0.
+MidiOutput midiOut;
+midiOut.open(0);</code></pre><p>Running the above code caused a new MIDI output device to appear under <a href="http://qjackctl.sourceforge.net/">qjackctl</a>&#39;s MIDI tab. Sweet!</p>
+<p>After spending some time squinting at this handy <a href="http://www.midi.org/techspecs/midimessages.php">table of MIDI messages</a>, I determined the relevant status bytes for the types of messages I wanted to use:</p>
+<table>
+<thead>
+<tr>
+<th align="center">Status Byte</th>
+<th align="center">Binary</th>
+<th align="center">Hex</th>
+<th align="center">Decimal</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">Note On, Channel 1</td>
+<td align="center">10010000</td>
+<td align="center">90</td>
+<td align="center">144</td>
+</tr>
+<tr>
+<td align="center">Note Off, Channel 1</td>
+<td align="center">10000000</td>
+<td align="center">80</td>
+<td align="center">128</td>
+</tr>
+<tr>
+<td align="center">Pitch Bend, Channel 1</td>
+<td align="center">11100000</td>
+<td align="center">E0</td>
+<td align="center">224</td>
+</tr>
+</tbody></table>
+<p>To actually build the MIDI message, to be sent via the MidiOut object, I needed to instantiate a MidiMsg object.</p>
+<pre><code>MidiMsg msg;
+
+144 =&gt; msg.data1;  // status byte - note on, channel 1
+30  =&gt; msg.data2;  // a low note
+127 =&gt; msg.data3;  // highest possible velocity
+
+midiOut.send(msg); // send the message</code></pre><p>Success - the soft-synth played a note!</p>
+<p><strong>Interacting with the Joystick</strong></p>
+<p>The next step was to see if I could get the joystick to work. Thankfully, it worked right away and there was no unnecessary drama with drivers or loading additional kernel modules. Running <code>cat /dev/input/js1</code> in the terminal and moving the joystick around a bit printed  some promising gibberish to the screen.</p>
+<p>Now confident that the joystick worked and was talking to my computer, I wrote a quick ChucK script to capture joystick events and print the output (based on <a href="http://chuck.cs.princeton.edu/doc/examples/hid/joy.ck">this example</a> from the ChucK documentation), in order to see what kind of output - eventually to be transformed into MIDI pitch bend messages - I would be dealing with.</p>
+<p><code>msg.axisPosition()</code> returned float values ranging from -1.000 to 1.000 representing the current position of the joystick, and <code>msg.which()</code> returned an integer representing the axis on which the joystick was moving: 0 for motion along the x-axis, and 1 for motion along the y-axis.</p>
+<p>I decided that since I wanted to mimic the action of a pitch bend wheel on a keyboard (up and down, no side to side), I would only pay attention to y-axis values, and ignore any messages where <code>msg.which()</code> returns 0.</p>
+<p>I noticed that <code>msg.axisPosition()</code> returned a negative value when the joystick was in quadrants I or II (pushing forwards / down) and a positive value when it was in quadrants III or IV (pulling up / backwards). It felt more intuitive to me for the pitch to go <em>up</em> when I pushed the joystick forward, and vice versa, so I needed to make sure to account for this in my arithmetic and &#39;flip&#39; the output.</p>
+<p><strong>Transforming the Raw Output</strong></p>
+<p>In the MIDI protocol, a peculiarity of pitch bend messages is that they only take one argument instead of two: a fourteen-bit wide value indicating the position of the pitch wheel. In decimal, this is a value ranging from 0 to 16383, where 8192 is the wheel at resting position.</p>
+<p>The reason for this is that 128 discrete values (the amount provided by seven bits of data) do not provide enough granularity for the pitch to sound like it is bending smoothly - the listener will hear the individual &quot;steps&quot; as the pitch moves. Fourteen bits of data provide enough granularity between steps to trick the human ear into hearing a smooth bend.</p>
+<p>The pitch bend message still needs to take the format of a status byte followed by two parameter bytes, so the fourteen-bit wide position value needs to be split into two separate seven-bit wide values (one containing the seven high-order bits, and one containing the seven low-order bits) in order to be passed as a MIDI message.</p>
+<p>This was an opportunity for me to trot out ChucK&#39;s bitwise operators. To get the seven low-order bits, I needed to use the <em>and</em> operator (<code>&amp;</code>) to mask the joystick&#39;s position value with 127 (or 00000001111111). This zeroed out the seven high-order bits and left me with the low-order half.</p>
+<p>In order to isolate the seven high-order bits, I needed to shift (<code>&gt;&gt;</code>) the original position value seven bits to the right (the empty positions created to the left are padded with zeroes).</p>
+<pre><code>// mask bendValue with 1111111 to get the least significant bits
+bendValue &amp; 127 =&gt; lsb;
+
+// shift bendValue 7 bits right to get the most significant bits
+bendValue &gt;&gt; 7 =&gt; msb;</code></pre><p>The next step was to implement the arithmetic needed to transform the output of <code>msg.axisPosition()</code> to values that would be useful to me. If <code>msg.axisPosition()</code> returned negative, I would need to take its absolute value, then multiply by 8191, and then offset it by adding 8192, since &#39;resting position&#39; needed to be 8192 rather than zero. And if the return value was positive, it would be the same as above except I&#39;d need to multiply the entire result by -1.</p>
+<pre><code>if(hidMsg.which == 1 &amp;&amp; hidMsg.axisPosition &lt;= 0) {
+  ( (Std.fabs(hidMsg.axisPosition) * 8191) + 8192)         \
+    $ int =&gt; bendValue;
+}
+else if(hidMsg.which == 1 &amp;&amp; hidMsg.axisPosition &gt; 0) {
+  ((-1 * (Std.fabs(hidMsg.axisPosition) * 8191)) + 8192)   \
+    $ int =&gt; bendValue;
+}
+</code></pre><p><strong>Putting it All Together</strong></p>
+<p>To wrap things up, I wrote a helper function to build and transmit the MIDI messages. <code>sendMsg()</code> takes the following parameters: a reference to a MidiOutput object, a reference to a MidiMsg object, and the three bytes of the message.</p>
+<pre><code>fun void sendMsg(MidiOut midiOut, MidiMsg msg,
+                 int data1, int data2, int data3) {
+
+  data1 =&gt; msg.data1;
+  data2 =&gt; msg.data2;
+  data3 =&gt; msg.data3;
+  midiOut.send(msg);
+
+}</code></pre><p>Lastly, I placed all of this inside of an event loop continuously capturing the output of the joystick, and I was good to go. I was making sweet music with one hand on the keyboard, and one hand on the joystick.</p>
+<p>You can see the full code <a href="https://github.com/davep3rrett/joystick-pitchbend.ck">here</a>. Thanks for reading!</p>
+
+
+
+</div>
+<footer>
+  <hr>
+  <p>&copy; 2018 Dave Perrett</p>
+</footer>
+</body>
+</html>
+
+
+

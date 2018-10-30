@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <title>Dave Perrett Details His Computing Misadventures </title>
+  <link rel="stylesheet" type="text/css" href="../main.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <meta name="description" content="Dave Perrett Details His Computing Misadventures - A Programming Blog. Dave Perrett is a developer and musician living in Brooklyn, NY.">
+</head>
+
+<body>
+  <header>
+    <a href="../index.html"><h1>Dave Perrett Details His Computing Misadventures</h1></a>
+  </header>
+  <div class="main-content">
+
+
+
+<h2 id="editing-video-and-applying-effects-with-ffmpeg-from-the-command-line">Editing video and applying effects with ffmpeg from the command line</h2>
+<p>I&#39;ve started reviewing footage I shot this past fall on a roadtrip a friend and I took to West Virginia. My goal is to create a trip diary / &#39;road movie&#39;. I initially thought I would use <a href="http://cinelerra.org">Cinelerra</a> for the project, but when I started googling how to apply a slow motion effect to a clip, I realized I was in for a much more tedious experience than I had initially imagined.</p>
+<p>Somewhere along my search, I came across <a href="http://blog.grio.com/2012/01/fast-and-slow-motion-video-with-ffmpeg.html">advice from a fellow moviemaker</a> (thanks, Andrew!) to simply process the video clip in question directly using <a href="http://www.ffmpeg.org">ffmpeg</a>. At first I thought this would be a good workaround, and I would import the result into my Cinelerra project and move on. But then it occurred to me: why not put together the entire movie with ffmpeg from the terminal, eschewing the GUI experience altogether?</p>
+<p>If we&#39;re being honest, Cinelerra&#39;s GUI is a tad, well...inscrutable. Would learning ffmpeg&#39;s command structure and extensive collection of video and audio filters be any more difficult? That&#39;s probably debatable, but doing the whole thing in ffmpeg sounded like a fun challenge to me, so here we are.</p>
+<p>I&#39;ll lay out a couple of tips and tricks I&#39;ve picked up so far, and as the project progresses, I hope to document my further findings in a later post.</p>
+<hr/>
+<h4 id="slow-motion">Slow Motion</h4>
+<p><code>ffmpeg -i [input-file] -vf &quot;setpts=[your multiplier here]*PTS&quot; [output-file]</code></p>
+<p>For example, passing &quot;setpts=2*PTS&quot; to the -vf flag would slow the video down by half. Using a multiplier of less than 1 would speed the video up (i.e. &quot;0.5*PTS&quot; == double speed).</p>
+<h4 id="slowing-down-the-audio">Slowing Down the Audio</h4>
+<p>You might be surprised, like I was after my first attempt, that slowing down the video as shown above does not automatically slow down the audio as well. Running the above command will give you a slowed down video, but with the audio unchanged, and silence after the original audio runs out.</p>
+<p><code>ffmpeg -i [input-file] -af &quot;asetrate=[desired sample rate]&quot; [output-file]</code></p>
+<p>If you wanted to slow down the audio by half, and your original clip has a sample rate of 44100 Hz, you would specify a sample rate of 22050.</p>
+<p>You may need to resample your result back up to a &#39;normal&#39; sample rate to get it to play nice with other clips, depending on what you&#39;re doing (44100 and 48000 are common):</p>
+<p><code>ffmpeg -i [input-file] -af &quot;aresample=[desired sample rate]&quot; [output-file]</code></p>
+<h4 id="chopping-a-clip">Chopping a Clip</h4>
+<p><a href="http://superuser.com/a/141343">This StackOverflow answer</a> helped me figure this one out:</p>
+<p><code>ffmpeg -i [input-file] -ss [start time] -c copy -t [length of time] [output-file]</code></p>
+<p>Times can simply be specified in seconds, or in HH:MM:SS.[optional decimal fraction of a second] format.</p>
+<hr/>
+<p>Do note that the <code>-vf</code> (video filter) and <code>-af</code> (audio filter) flags can be used in the same command - you can slow down the video and the audio in one shot by combining the above <code>-vf</code> and <code>-af</code> parameters into a nice one-liner, something like:</p>
+<p><code>ffmpeg -i [input file] -vf &quot;setpts=2*PTS&quot; -af &quot;asetrate=22050&quot; [output-file]</code></p>
+<p>These are just a couple of initial findings - I hope to make another post or two about the subject in the future as I get deeper into the project. May this inspire you to become a command line auteur!</p>
+
+
+
+</div>
+<footer>
+  <hr>
+  <p>&copy; 2018 Dave Perrett</p>
+</footer>
+</body>
+</html>
+
+
+

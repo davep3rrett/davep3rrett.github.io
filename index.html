@@ -1,33 +1,55 @@
----
-layout: default
-title: Home
----
+<!doctype html>
+<html>
+<head>
+  <title>Dave Perrett Details His Computing Misadventures </title>
+  <link rel="stylesheet" type="text/css" href="main.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <meta name="description" content="Dave Perrett Details His Computing Misadventures - A Programming Blog. Dave Perrett is a developer and musician living in Brooklyn, NY.">
+</head>
 
-<div class="posts">
-  {% for post in paginator.posts %}
-  <article class="post">
-    <h1 class="post-title">
-      <a href="{{ site.baseurl }}{{ post.url }}">
-        {{ post.title }}
-      </a>
-    </h1>
+<body>
+  <header>
+    <a href="index.html"><h1>Dave Perrett Details His Computing Misadventures</h1></a>
+  </header>
+  <div class="main-content">
 
-    <time datetime="{{ post.date | date_to_xmlschema }}" class="post-date">{{ post.date | date_to_string }}</time>
 
-    {{ post.content }}
-  </article>
-  {% endfor %}
+
+<p class="bio">Dave Perrett is a developer and musician living in Brooklyn, NY.</p>
+
+<ul class="posts-list">
+
+
+  
+  <li class="posts-list__item">
+    <a href="posts/2016-04-04-joystick.html">Using a Gaming Joystick as a MIDI Pitch Bend Wheel</a> &#1421; April 4, 2016
+  </li>
+
+  
+  <li class="posts-list__item">
+    <a href="posts/2016-05-31-ffmpeg.html">Editing video and applying effects with ffmpeg from the command line</a> &#1421; May 31, 2016
+  </li>
+
+  
+  <li class="posts-list__item">
+    <a href="posts/2018-08-16-c-hashtable-vim-preamble.html">Preamble / Ramble on Learning Vim, Learning C, and Implementing a Hashmap for Self Edification and Mind Expansion</a> &#1421; August 16, 2018
+  </li>
+
+  
+  <li class="posts-list__item">
+    <a href="posts/2018-10-30-makefile-static-blog-generator.html">A Makefile-based static site generator</a> &#1421; October 30, 2018
+  </li>
+
+</ul>
+
 </div>
+<footer>
+  <hr>
+  <p>&copy; 2018 Dave Perrett</p>
+</footer>
+</body>
+</html>
 
-<div class="pagination">
-  {% if paginator.next_page %}
-    <a class="pagination-item older" href="{{ paginator.next_page_path | prepend: site.baseurl }}">Older</a>
-  {% else %}
-    <span class="pagination-item older">Older</span>
-  {% endif %}
-  {% if paginator.previous_page %}
-    <a class="pagination-item newer" href="{{ paginator.previous_page_path | prepend: site.baseurl }}">Newer</a>
-  {% else %}
-    <span class="pagination-item newer">Newer</span>
-  {% endif %}
-</div>
+
+
