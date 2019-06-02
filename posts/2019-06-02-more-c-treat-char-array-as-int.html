@@ -19,14 +19,14 @@
 
 
 <h2 id="more-c-treating-an-array-of-chars-as-an-int">More C: Treating an array of chars as an int</h2>
-<p>In Exercise 9 (Arrays &amp; Strings) of <a href="https://learncodethehardway.org/c/">Learn C The Hard Way</a> Zed poses a cool extra credit question:</p>
+<p>In Exercise 11 (Arrays &amp; Strings) of <a href="https://learncodethehardway.org/c/">Learn C The Hard Way</a> Zed poses a cool extra credit question:</p>
 <blockquote>
 <p>If an array of characters is 4 bytes long, and an int is 4 bytes long, then can you treat the whole <code>name</code> array like it&#39;s just an integer? How might you accomplish this crazy hack?</p>
 </blockquote>
 <p>My first thought that it would be as simple as defining a <code>char[]</code> array and then just <code>printf()</code>-ing it using a <code>%d</code> format specifier.</p>
 <p>This first attempt compiled, but the result of <code>printf()</code> was different each time I ran my program, so no dice.</p>
 <p>I decided to search the question, and <a href="https://stackoverflow.com/questions/23001591/treating-a-character-array-as-an-integer-learn-c-the-hard-way-extra-credit">this SO answer</a> showed me the crucial step I was missing: use an integer pointer to point to the memory address of the character array.</p>
-<p>I haven&#39;t gotten to the pointers chapter in LCTHW yet, and I do remember pointers a little bit from my first couple semesters doing C++ at Brooklyn College, but it&#39;s been a while.</p>
+<p>I haven&#39;t gotten to the pointers chapter in LCTHW yet, and although I do remember pointers a little bit from my first couple semesters doing C++ at Brooklyn College, it&#39;s been a while.</p>
 <p>So I reworked my original attempt and came up with the below code. (I did make a test program that printed out the result of <code>sizeof (int)</code> and confirmed that <code>int</code>s are 4 bytes on my system, but I decided to use <code>uint32_t</code> in my code anyway, to be explicit about the need for 4 bytes and to make my code more portable).</p>
 <pre><code class="language-c">#include &lt;stdio.h&gt;
 #include &lt;stdint.h&gt;
